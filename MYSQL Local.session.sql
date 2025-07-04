@@ -1,0 +1,7 @@
+SHOW DATABASES;
+
+USE world;
+
+SHOW TABLES;
+
+SELECT * FROM country LIMIT 10;
