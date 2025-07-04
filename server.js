@@ -1,22 +1,35 @@
-const express = require('express');
-const db = require('./database');
-require('dotenv').config();
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-app.use(express.static('public'));
-
 app.get('/estados', async (req, res) => {
   try {
-    const [rows] = await db.query('SELECT * FROM estados');
+    const regioesValidas = {
+      norte: 'Norte',
+      nordeste: 'Nordeste',
+      sul: 'Sul',
+      sudeste: 'Sudeste',
+      'centro-oeste': 'Centro-Oeste'
+    };
+
+    let { regiao } = req.query;
+
+    let query = 'SELECT * FROM estados';
+    const params = [];
+
+    if (regiao) {
+      // Normaliza: remove espaços e converte pra minúscula
+      const chave = regiao.trim().toLowerCase();
+      const regiaoFinal = regioesValidas[chave];
+
+      if (!regiaoFinal) {
+        return res.status(400).json({ erro: 'Região inválida. Use: Norte, Sul, etc.' });
+      }
+
+      query += ' WHERE regiao = ?';
+      params.push(regiaoFinal);
+    }
+
+    const [rows] = await db.query(query, params);
     res.json(rows);
   } catch (err) {
     console.error('Erro ao consultar estados:', err);
     res.status(500).send('Erro no servidor');
   }
-});
-
-app.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
 });
